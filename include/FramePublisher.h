@@ -77,6 +77,13 @@ protected:
     Map* mpMap;
 
     boost::mutex mMutex;
+
+    /*
+     * Looking Glass extension
+     */
+public:
+    // Tag current visible map points.
+    bool should_tag;
 };
 
 } //namespace ORB_SLAM

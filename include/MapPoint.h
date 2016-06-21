@@ -129,6 +129,12 @@ protected:
 
      boost::mutex mMutexPos;
      boost::mutex mMutexFeatures;
+
+     /*
+      * Looking Glass extension
+      */
+public:
+     int tag;
 };
 
 } //namespace ORB_SLAM

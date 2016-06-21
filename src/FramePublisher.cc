@@ -28,6 +28,9 @@
 #include<ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
 
+#include <vector>
+using namespace std;
+
 namespace ORB_SLAM
 {
 
@@ -38,6 +41,8 @@ FramePublisher::FramePublisher()
     mbUpdated = true;
 
     mImagePub = mNH.advertise<sensor_msgs::Image>("ORB_SLAM/Frame",10,true);
+
+    should_tag = false;
 
     PublishFrame();
 }
@@ -123,9 +128,20 @@ cv::Mat FramePublisher::DrawFrame()
                 pt1.y=vCurrentKeys[i].pt.y-r;
                 pt2.x=vCurrentKeys[i].pt.x+r;
                 pt2.y=vCurrentKeys[i].pt.y+r;
+
+                cv::Scalar color(0, 255, 0);
+
                 if(!mvbOutliers[i])
                 {
-                    cv::rectangle(im,pt1,pt2,cv::Scalar(0,255,0));
+                  /*
+                   * Looking Glass extension
+                   */
+
+                  if (vMatchedMapPoints[i] && vMatchedMapPoints[i]->tag == 1) {
+                    color = cv::Scalar(0, 0, 255);
+                  }
+
+                    cv::rectangle(im,pt1,pt2,color);
                     cv::circle(im,vCurrentKeys[i].pt,2,cv::Scalar(0,255,0),-1);
                     mnTracked++;
                 }
@@ -194,6 +210,20 @@ void FramePublisher::Update(Tracking *pTracker)
     mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
     mvpMatchedMapPoints=pTracker->mCurrentFrame.mvpMapPoints;
     mvbOutliers = pTracker->mCurrentFrame.mvbOutlier;
+
+    /*
+     * Looking Glass extension
+     */
+    if (should_tag) {
+      for (std::size_t i = 0; i < mvpMatchedMapPoints.size(); i++) {
+        MapPoint* mp = mvpMatchedMapPoints[i];
+        if (mp) {
+          mp->tag = 1;
+        }
+      }
+      should_tag = false;
+    }
+
 
     if(pTracker->mLastProcessedState==Tracking::INITIALIZING)
     {

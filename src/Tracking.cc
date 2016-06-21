@@ -749,8 +749,13 @@ void Tracking::UpdateReferencePoints()
             MapPoint* pMP = *itMP;
             if(!pMP)
                 continue;
+
+	    // (xymeng): don't include the same map point twice
+	    // a map point's mnTrackReferenceForFrame is ONLY
+	    // modified in this loop.
             if(pMP->mnTrackReferenceForFrame==mCurrentFrame.mnId)
                 continue;
+
             if(!pMP->isBad())
             {
                 mvpLocalMapPoints.push_back(pMP);

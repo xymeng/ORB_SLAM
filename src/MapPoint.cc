@@ -36,6 +36,8 @@ MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
     Pos.copyTo(mWorldPos);
     mnId=nNextId++;
     mNormalVector = cv::Mat::zeros(3,1,CV_32F);
+
+    tag = -1;
 }
 
 void MapPoint::SetWorldPos(const cv::Mat &Pos)

@@ -38,9 +38,10 @@
 
 #include "Converter.h"
 
+#include <zmq.hpp>
+
 
 using namespace std;
-
 
 int main(int argc, char **argv)
 {
@@ -149,12 +150,33 @@ int main(int argc, char **argv)
 
     ros::Rate r(fps);
 
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_REP);
+    socket.bind("tcp://0.0.0.0:5555");
+
+    zmq::pollitem_t item;
+    item.socket = (void*)socket;
+    item.events = ZMQ_POLLIN;
+
     while (ros::ok())
     {
-        FramePub.Refresh();
-        MapPub.Refresh();
-        Tracker.CheckResetByPublishers();
-        r.sleep();
+       zmq::message_t msg;
+       zmq::poll(&item, 1, 0);
+
+       if (item.revents == ZMQ_POLLIN) {
+         if (socket.recv(&msg)) {
+           FramePub.should_tag = true;
+           cout << "Current visible map points tagged\n";
+           socket.send("", 0);
+         }
+       }
+
+       FramePub.Refresh();
+       MapPub.Refresh();
+
+       Tracker.CheckResetByPublishers();
+
+       r.sleep();
     }
 
     // Save keyframe poses at the end of the execution
